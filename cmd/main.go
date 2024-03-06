@@ -16,7 +16,7 @@ func main() {
 	env := app.Env
 
 	// Connect to the database
-	db, err := sqlx.Open("sqlite3", "test.db")
+	db, err := sqlx.Open("postgres", "host=127.0.0.1 user=cipher dbname=etheruem_poc port=5432 sslmode=disable password=cipher")
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 		return

@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"goApiStartetProject/config"
 	"goApiStartetProject/db/repository"
 	"log"
 	"net/http"
@@ -18,7 +17,7 @@ type NewUser struct {
 
 type UserHandler struct {
 	Repo repository.UserRepositoryInterface
-	Env  *config.Env
+	Handler Handler
 }
 
 var customErrorMessages = map[string]map[string]string{

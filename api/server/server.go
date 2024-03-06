@@ -3,8 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
 	"goApiStartetProject/api/middlewares"
 	"goApiStartetProject/api/routes"
 	"goApiStartetProject/config"
@@ -14,6 +12,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 )
 
 const defaultPort = "8080"
@@ -24,6 +26,9 @@ func Server(env *config.Env, db *sqlx.DB) {
 		port = defaultPort
 	}
 
+	// Initialize an EthNetwork Connection
+	ethClient, err := EthNetworkConnection(env.EthNetwork)
+
 	// Initialize Gin router
 	r := gin.New()
 	r.Use(gin.Logger())
@@ -31,6 +36,12 @@ func Server(env *config.Env, db *sqlx.DB) {
 	r.HandleMethodNotAllowed = true
 	r.Use(middlewares.CORS())
 
+	if err != nil {
+		r.GET("/", func(c *gin.Context) {
+			c.String(http.StatusInternalServerError, "Unable to connect to Ethereum network!")
+			log.Fatal("Ethereum Network Connection Failed: ", err)
+		})
+	}
 	// Health
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Server is Running!")
@@ -44,7 +55,7 @@ func Server(env *config.Env, db *sqlx.DB) {
 
 	// Setup Route
 	rootPath := r.Group("")
-	routes.SetupRoute(env, db, rootPath)
+	routes.SetupRoute(env, db, ethClient, rootPath)
 
 	// Setup server
 	srv := &http.Server{
@@ -84,4 +95,20 @@ func Server(env *config.Env, db *sqlx.DB) {
 	}
 
 	log.Println("Server exiting")
+}
+
+
+func EthNetworkConnection(EthNetwork string) (*ethclient.Client, error) {
+
+    ethClient, err := ethclient.Dial(EthNetwork)
+
+    if err != nil {
+        log.Fatal("Oops! There was a problem", err)
+		return nil, err
+    } 
+        
+	fmt.Println("Success! you are connected to the Ethereum Network")
+	fmt.Println(ethClient.BlockNumber(context.Background()))
+
+	return ethClient, nil
 }

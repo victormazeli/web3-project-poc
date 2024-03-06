@@ -1,12 +1,14 @@
 package routes
 
 import (
+	"goApiStartetProject/config"
+
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	"goApiStartetProject/config"
 )
 
-func SetupRoute(env *config.Env, db *sqlx.DB, rg *gin.RouterGroup) {
-	UserRoute(env, db, rg)
+func SetupRoute(env *config.Env, db *sqlx.DB, ethClient *ethclient.Client, rg *gin.RouterGroup) {
+	UserRoute(env, db, ethClient, rg)
 
 }
