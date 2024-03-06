@@ -17,7 +17,7 @@ type NewUser struct {
 
 type UserHandler struct {
 	Repo repository.UserRepositoryInterface
-	Handler Handler
+	Handler *Handler
 }
 
 var customErrorMessages = map[string]map[string]string{

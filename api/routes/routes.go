@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"goApiStartetProject/api/handlers"
 	"goApiStartetProject/config"
 
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -9,6 +10,8 @@ import (
 )
 
 func SetupRoute(env *config.Env, db *sqlx.DB, ethClient *ethclient.Client, rg *gin.RouterGroup) {
-	UserRoute(env, db, ethClient, rg)
+
+	handler := handlers.NewHandler(ethClient, env)
+	UserRoute(handler, db, rg)
 
 }
