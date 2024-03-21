@@ -5,8 +5,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"goApiStartetProject/api/server"
-	"goApiStartetProject/config"
+	"goApiStartetProject/core/config"
+	"goApiStartetProject/core/server"
 	"log"
 )
 
