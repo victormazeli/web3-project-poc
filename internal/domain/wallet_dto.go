@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"goApiStartetProject/internal/util/validator"
+
+	"github.com/google/uuid"
+)
 
 const (
 	MasterWallet = "Master"
@@ -9,9 +13,15 @@ const (
 
 
 type CreateWalletRequestPayload struct {
-	UserID uuid.UUID `json:"user_id" binding:"required"`
+	Passphrase		string		`json:"passphrase"`
 }
 
 type CreateWalletResponsePayload struct {
 	WalletID uuid.UUID `json:"id"`
+}
+
+func (w *CreateWalletRequestPayload) Validate(v *validator.Validator) bool {
+	v.Check(w.Passphrase != "", "passphrase", "passphrase is required")
+
+	return v.Valid()
 }

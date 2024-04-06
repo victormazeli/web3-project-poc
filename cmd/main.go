@@ -16,16 +16,13 @@ func main() {
 	env := app.Env
 
 	// Connect to the database
-	db, err := sqlx.Open("postgres", "host=127.0.0.1 user=cipher dbname=etheruem_poc port=5432 sslmode=disable password=cipher")
+	db, err := sqlx.Open("postgres", "host=127.0.0.1 user=cipher dbname=ethereum_poc port=5432 sslmode=disable password=cipher")
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 		return
 	}
 	defer func(db *sqlx.DB) {
-		err := db.Close()
-		if err != nil {
-
-		}
+		 db.Close()
 	}(db)
 
 	// Test the connection

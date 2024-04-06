@@ -5,7 +5,7 @@ import (
 	// "crypto/ecdsa"
 	// "errors"
 	// "fmt"
-	"goApiStartetProject/core/storages/postgres/repository"
+	"goApiStartetProject/internal/storages/postgres/repository"
 	"goApiStartetProject/internal/domain"
 	walletPkg "goApiStartetProject/internal/util/wallet"
 
@@ -110,7 +110,7 @@ func (w *WalletService) Listwallets(ctx context.Context, skip uint64, limit uint
 
 // GenerateWallet implements WalletServiceInterface.
 func (w *WalletService) GenerateWalletAddress(ctx context.Context, ethClient *ethclient.Client, wallet domain.CreateWalletRequestPayload) (string, error) {
-	address, _ := walletPkg.NewKeystoreAccount(wallet.UserID.String(), ethClient)
+	address, _ := walletPkg.NewKeystoreAccount(wallet.Passphrase, ethClient)
 	return address.Hex(), nil
 }
 

@@ -110,7 +110,6 @@ func EthNetworkConnection(EthNetwork string) (*ethclient.Client, error) {
 
 	if err == nil {
 		fmt.Println("Success! you are connected to the Ethereum Network")
-		fmt.Println(ethClient.BlockNumber(context.Background()))
 	}
 
 	return ethClient, nil

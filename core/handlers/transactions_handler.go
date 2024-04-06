@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"goApiStartetProject/internal/domain"
 	"goApiStartetProject/internal/service"
 	"goApiStartetProject/internal/util/ApiResponse"
@@ -60,11 +61,14 @@ func (w *TransactionHandler) HandleNewTransaction(c *gin.Context) {
 	hash, err := w.Handler.Service.TransactionService.TransferCoin(c, w.Handler.Service.EthClient, newTransaction)
 	if err != nil {
 		ApiResponse.SendInternalServerError(c, err.Error())
+		return
 	}
+	fmt.Print(hash)
 
 	txReciept, err := w.Handler.Service.EthClient.TransactionReceipt(c, hash)
 	if err != nil {
 		ApiResponse.SendInternalServerError(c, err.Error())
+		return
 	}
 
 	ApiResponse.SendCreated(c, "Transaction Created", txReciept)

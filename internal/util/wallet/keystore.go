@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -34,21 +35,24 @@ func NewKeystoreAccount(password string, client *ethclient.Client) (*common.Addr
 	return &account.Address, nil
 }
 
-func ImportKeystore(filePath, keystoreDir, password string) (string, error) {
-    keystore := keystore.NewKeyStore(keystoreDir, keystore.StandardScryptN, keystore.StandardScryptP)
-    jsonBytes, err := os.ReadFile(filePath)
+func ImportKeystore(filePath, keystoreDir, password string) (common.Address, error) {
+	
+	ks := keystore.NewKeyStore("/tmps", keystore.StandardScryptN, keystore.StandardScryptP)
+	jsonBytes, err := os.ReadFile(keystoreDir+filePath)
     if err != nil {
-        return "", err
+        return common.Address{}, err
     }
 
-    account, err := keystore.Import(jsonBytes, password, password)
+    account, err := ks.Import(jsonBytes, password, "passwored")
+	fmt.Println(err)
     if err != nil {
-        return "", err
+        return common.Address{}, err
     }
 
-    if err := os.Remove(filePath); err != nil {
-        return "", err
+    if err := os.Remove(keystoreDir+filePath); err != nil {
+        return common.Address{}, err
     }
 
-    return account.Address.Hex(), nil
+	fmt.Println(account)
+    return account.Address, nil
 }

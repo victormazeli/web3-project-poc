@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"fmt"
 	"goApiStartetProject/internal/util/validator"
 	"log"
 	"math/big"
@@ -12,7 +13,7 @@ import (
 )
 
 type TransferCoinRequestPayload struct {
-	Password	string		`json:"password"`
+	Password	string		`json:"password" binding:"required"`
 	Hash        string    `json:"hash"`
 	Status      string    `json:"status"`
 	CoinType    string    `json:"coin_type" binding:"required"`
@@ -44,8 +45,9 @@ func (tx TransferCoinRequestPayload) Validate(v *validator.Validator) bool {
 }
 
 func (tx TransferCoinRequestPayload) SetTransferCoinReqPayload(ctx context.Context, client *ethclient.Client)  {
-	// amtToSend := big.NewInt(1000000000000000000) // in wei (1 eth)
+	fmt.Println(client)
 	nonce, _ := tx.GetNonce(ctx, client, tx.FromAddress)
+
 
 	gasLimit := uint64(21000) // in units
 

@@ -17,6 +17,7 @@ type User struct {
 	ID        uuid.UUID `db:"id"`
 	Firstname string    `db:"firstname"`
 	Lastname  string    `db:"lastname"`
+	MiddleName	string	`db:"middlename"`
 	Email     string    `db:"email"`
 	Password  string    `db:"password"`
 	Verified  bool      `db:"verified"`
@@ -61,8 +62,8 @@ func NewUserRepository(db *sqlx.DB) UserRepositoryInterface {
 }
 
 func (r *userRepository) CreateUser(ctx context.Context, user *User) (uuid.UUID, error) {
-	query := `INSERT INTO users (id, firstname, lastname, address.state, address.type, address.zip_code, address.street, verified, address.city, address.country, profile.username, email, password, profile.dob, profile.phone, created_at, updated_at) 
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING id`
+	query := `INSERT INTO users (id, firstname, lastname, middlename, state, address_type, zip_code, street, verified, city, country, username, email, password, dob, phone) 
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`
 
 	row := r.db.QueryRowContext(
 		ctx,
@@ -70,6 +71,7 @@ func (r *userRepository) CreateUser(ctx context.Context, user *User) (uuid.UUID,
 		user.ID,
 		user.Firstname,
 		user.Lastname,
+		user.MiddleName,
 		user.Address.State,
 		user.Address.Type,
 		user.Address.ZipCode,
@@ -78,11 +80,11 @@ func (r *userRepository) CreateUser(ctx context.Context, user *User) (uuid.UUID,
 		user.Address.City,
 		user.Address.Country,
 		user.Profile.Username,
-		user.Email, user.Password,
+		user.Email, 
+		user.Password,
 		user.Profile.DOB,
 		user.Profile.Phone,
-		time.Now(),
-		time.Now())
+	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	if err != nil {

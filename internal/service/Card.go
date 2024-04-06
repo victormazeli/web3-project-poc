@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"goApiStartetProject/core/storages/postgres/repository"
+	"goApiStartetProject/internal/storages/postgres/repository"
 	"goApiStartetProject/internal/util/wallet"
 	"log"
 

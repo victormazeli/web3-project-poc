@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"goApiStartetProject/core/storages/postgres/repository"
+	"goApiStartetProject/internal/storages/postgres/repository"
 	"goApiStartetProject/internal/domain"
 	"goApiStartetProject/internal/util/wallet"
 	"log"
@@ -35,14 +35,16 @@ func (t *TransactionService) TransferCoin(ctx context.Context, client *ethclient
 	// Set the directory for the keystore.
 	keystoreDir := "./wallets"
 
-	filePath := "UTC--2024-03-16T02-37-58.426400500Z--0b04d804275162b0a200d303271b1f2d03464ac3"
+	filePath := "/UTC--2024-03-22T11-22-29.712456800Z--6713fe6cb976e6787ac0dbd2c26efcbb2e41d6e0"
 	
 	publicAddress, err := wallet.ImportKeystore(filePath, keystoreDir, txReq.Password)
 	if err != nil{
 		return common.Hash{}, err
 	}
 
-	privateKey, err := crypto.HexToECDSA(publicAddress)
+	txReq.FromAddress = publicAddress
+	fmt.Println(publicAddress)
+	privateKey, err := crypto.HexToECDSA(publicAddress.Hex())
     if err != nil {
         log.Fatal(err)
     }
@@ -57,7 +59,7 @@ func (t *TransactionService) TransferCoin(ctx context.Context, client *ethclient
 
 	txReq.SetTransferCoinReqPayload(ctx, client)
 
-	toAddress := common.HexToAddress(publicAddress)
+	toAddress := common.HexToAddress(publicAddress.Hex())
     var data []byte
     tx := types.NewTransaction(txReq.Nonce, toAddress, txReq.Amount, txReq.GasLimit, txReq.GasPrice, data)
 

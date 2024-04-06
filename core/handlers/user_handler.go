@@ -1,16 +1,18 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"goApiStartetProject/internal/domain"
 	"goApiStartetProject/internal/service"
 	"goApiStartetProject/internal/util/ApiResponse"
+	validate "goApiStartetProject/internal/util/validator"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 )
 
 type UserHandlerInterface interface {
@@ -34,7 +36,7 @@ var customErrorMessages = map[string]map[string]string{
 		"min":      "Password must be at least 8 characters long.",
 	},
 	"Country": {
-		"required": "Username is required.",
+		"required": "Country is required.",
 	},
 }
 
@@ -46,36 +48,42 @@ func NewUserHandler(svc *service.Service) UserHandlerInterface {
 
 func (u *UserHandler) CreateUser(c *gin.Context) {
 	// Handle user creation logic
-	var newUser domain.NewUserRequestPayload
+	var newUserReq domain.NewUserRequestPayload
 
-	// fmt.Println(newUser)
-	if err := c.ShouldBindJSON(&newUser); err != nil {
-		errs := err.(validator.ValidationErrors)
+	if err := c.ShouldBindJSON(&newUserReq); err != nil {
+		var ve validator.ValidationErrors
 		var errorMsg string
-		for _, e := range errs {
-			// fmt.Println(e.)
-			if customMessages, ok := customErrorMessages[e.StructField()]; ok {
-				if customMessage, ok := customMessages[e.Tag()]; ok {
-					errorMsg += customMessage + " "
+		if errors.As(err, &ve) {
+			errs := err.(validator.ValidationErrors)
+			for _, e := range errs {
+				if customMessages, ok := customErrorMessages[e.StructField()]; ok {
+					if customMessage, ok := customMessages[e.Tag()]; ok {
+						errorMsg += customMessage + " "
+					}
 				}
 			}
+			v := validate.NewWithStore(c)
+			if !newUserReq.Validate(v) {
+				ApiResponse.SendValidationError(c, validate.NewValidationError("validation failed", v.Errors))
+				return
+			}
+		}else{
+			fmt.Println("error")
+			errorMsg = err.Error()
 		}
 		ApiResponse.SendBadRequest(c, errorMsg)
 		return
 	}
 
-	// userRespPayload, err := u.Handler.Service.UserService.Register(c, newUser)
+	userRespPayload, err := u.Handler.Service.UserService.Register(c, newUserReq)
 
-	// if err != nil {
-	// 	log.Println(err.Error())
-	// 	ApiResponse.SendInternalServerError(c, err.Error())
-	// 	return
-	// }
+	if err != nil {
+		log.Println(err.Error())
+		ApiResponse.SendInternalServerError(c, err.Error())
+		return
+	}
 
-	id := uuid.New()
-
-	fmt.Println(id)
-	ApiResponse.SendCreated(c, "User created", id)
+	ApiResponse.SendCreated(c, "User created", userRespPayload)
 }
 
 func (u *UserHandler) GetUser(c *gin.Context) {

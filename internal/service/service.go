@@ -23,6 +23,7 @@ func NewService(env *config.Env, ethClient *ethclient.Client, db *sqlx.DB) *Serv
 		EthClient:   ethClient,
 		UserService: NewUserService(db),
 		WalletService: NewWalletService(db),
+		TransactionService: NewTransactionService(db),
 	}
 
 }

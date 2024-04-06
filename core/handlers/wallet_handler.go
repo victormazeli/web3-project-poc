@@ -5,9 +5,9 @@ import (
 	"goApiStartetProject/internal/domain"
 	"goApiStartetProject/internal/service"
 	"goApiStartetProject/internal/util/ApiResponse"
+	"goApiStartetProject/internal/util/validator"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type WalletHandlerInterface interface {
@@ -27,34 +27,25 @@ func NewWalletHandler(svc *service.Service) WalletHandlerInterface {
 	}
 }
 
-var customWalletErrorMessages = map[string]map[string]string{
-	"user_id": {
-		"required": "UserID is required.",
-	},
-}
-
 func (w *WalletHandler) CreateWallet(c *gin.Context) {
 	// Handle user creation logic
 	var newWallet domain.CreateWalletRequestPayload
 
 	// fmt.Println(newWallet)
 	if err := c.ShouldBindJSON(&newWallet); err != nil {
-		errs := err.(validator.ValidationErrors)
-		var errorMsg string
-		for _, e := range errs {
-			if customMessages, ok := customErrorMessages[e.StructField()]; ok {
-				if customMessage, ok := customMessages[e.Tag()]; ok {
-					errorMsg += customMessage + " "
-				}
-			}
-		}
-		ApiResponse.SendBadRequest(c, errorMsg)
+		ApiResponse.SendBadRequest(c, err.Error())
+		return
+	}
+	v := validator.New()
+	if !newWallet.Validate(v) {
+		ApiResponse.SendValidationError(c, validator.NewValidationError("validation failed", v.Errors))
 		return
 	}
 
 	walletRespPayload, err := w.Handler.Service.WalletService.GenerateWalletAddress(c, w.Handler.Service.EthClient, newWallet)
 	if err != nil {
 		ApiResponse.SendInternalServerError(c, fmt.Sprintf("%s", err.Error()))
+		return
 	}
 
 	ApiResponse.SendCreated(c, "Wallet Created", walletRespPayload)

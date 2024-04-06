@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS wallets(
     balance     VARCHAR (50) NOT NULL,
     private_key VARCHAR (50) NOT NULL,
     public_key  VARCHAR (50) NOT NULL,
-    user_id     UUID         NOT 
-    FOREIGN KEY (user_id) REFERENCES users (id),
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT (now()),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT (now()),
+    user_id     UUID         NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
 )

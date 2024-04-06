@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"goApiStartetProject/core/storages/postgres/repository"
+	"goApiStartetProject/internal/storages/postgres/repository"
 	"goApiStartetProject/internal/domain"
 
 	"github.com/google/uuid"
@@ -61,6 +61,7 @@ func (u *UserService) Register(ctx context.Context, user domain.NewUserRequestPa
 		ID:        uuid.New(),
 		Firstname: user.FirstName,
 		Lastname:  user.LastName,
+		MiddleName: user.MiddleName,
 		Email:     user.Email,
 		Password:  user.Password,
 		Verified:  false,
