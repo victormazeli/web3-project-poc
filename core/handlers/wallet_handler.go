@@ -12,7 +12,8 @@ import (
 
 type WalletHandlerInterface interface {
 	CreateWallet(c *gin.Context)
-	GetWallet(c *gin.Context)
+	ImportWallet(c *gin.Context)
+	// GetWallet(c *gin.Context)
 	UpdateWallet(c *gin.Context)
 	DeleteWallet(c *gin.Context)
 }
@@ -29,7 +30,7 @@ func NewWalletHandler(svc *service.Service) WalletHandlerInterface {
 
 func (w *WalletHandler) CreateWallet(c *gin.Context) {
 	// Handle user creation logic
-	var newWallet domain.CreateWalletRequestPayload
+	var newWallet domain.WalletRequestPayload
 
 	// fmt.Println(newWallet)
 	if err := c.ShouldBindJSON(&newWallet); err != nil {
@@ -42,7 +43,7 @@ func (w *WalletHandler) CreateWallet(c *gin.Context) {
 		return
 	}
 
-	walletRespPayload, err := w.Handler.Service.WalletService.GenerateWalletAddress(c, w.Handler.Service.EthClient, newWallet)
+	walletRespPayload, err := w.Handler.Service.WalletService.GenerateWalletAddresses(c, w.Handler.Service.EthClient, newWallet)
 	if err != nil {
 		ApiResponse.SendInternalServerError(c, fmt.Sprintf("%s", err.Error()))
 		return
@@ -58,8 +59,28 @@ func (w *WalletHandler) DeleteWallet(c *gin.Context) {
 }
 
 // GetWallet implements WalletHandlerInterface.
-func (w *WalletHandler) GetWallet(c *gin.Context) {
-	panic("unimplemented")
+func (w *WalletHandler) ImportWallet(c *gin.Context) {
+	// Handle user creation logic
+	var existingWallet domain.WalletRequestPayload
+
+	// fmt.Println(newWallet)
+	if err := c.ShouldBindJSON(&existingWallet); err != nil {
+		ApiResponse.SendBadRequest(c, err.Error())
+		return
+	}
+	v := validator.New()
+	if !existingWallet.Validate(v) {
+		ApiResponse.SendValidationError(c, validator.NewValidationError("validation failed", v.Errors))
+		return
+	}
+
+	walletRespPayload, err := w.Handler.Service.WalletService.GenerateWalletAddresses(c, w.Handler.Service.EthClient, existingWallet)
+	if err != nil {
+		ApiResponse.SendInternalServerError(c, fmt.Sprintf("%s", err.Error()))
+		return
+	}
+
+	ApiResponse.SendCreated(c, "Wallet Created", walletRespPayload)
 }
 
 // UpdateWallet implements WalletHandlerInterface.

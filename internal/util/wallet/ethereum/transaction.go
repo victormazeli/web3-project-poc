@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -23,7 +25,25 @@ func TransactionHistory(ctx context.Context, block *types.Block) types.Transacti
 	}
 
 	return block.Transactions()
+}
 
+func GetEthWalletBalance(ctx context.Context, client *ethclient.Client, address common.Address) (*big.Float, error){
+	// Get balance of the Ethereum address
+	balance, err := client.BalanceAt(context.Background(), address, nil)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	log.Println(balance)
+
+
+	// Convert balance from wei to ether
+	etherBalance := new(big.Float).SetInt(balance)
+	etherBalance = etherBalance.Quo(etherBalance, big.NewFloat(1e18))
+
+
+	return etherBalance, nil
 }
 
 func FetchSenderAddress(client *ethclient.Client, tx *types.Transaction) {

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"goApiStartetProject/internal/storages/postgres/repository"
 	"goApiStartetProject/internal/domain"
 
@@ -80,7 +79,6 @@ func (u *UserService) Register(ctx context.Context, user domain.NewUserRequestPa
 		},
 	}
 
-	fmt.Println("Creating")
 	respPayload, err := u.repo.UserRepo.CreateUser(ctx, &userPayload)
 	if err != nil {
 		return uuid.UUID{}, err

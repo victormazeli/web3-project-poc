@@ -3,20 +3,20 @@ package service
 import (
 	"context"
 	"fmt"
-	"goApiStartetProject/internal/storages/postgres/repository"
 	"goApiStartetProject/internal/domain"
-	"goApiStartetProject/internal/util/wallet"
+	"goApiStartetProject/internal/storages/postgres/repository"
+	"goApiStartetProject/internal/util/validator/ethereum"
+	"goApiStartetProject/internal/util/wallet/ethereum"
 	"log"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/jmoiron/sqlx"
 )
 
 type TransactionServiceInterface interface {
-	SellCoin(ctx context.Context, id uint64) error
 
 	TransferCoin(ctx context.Context, client *ethclient.Client, req domain.TransferCoinRequestPayload) (common.Hash, error)
 
@@ -33,21 +33,43 @@ type TransactionService struct {
 func (t *TransactionService) TransferCoin(ctx context.Context, client *ethclient.Client, txReq domain.TransferCoinRequestPayload) (common.Hash, error) {
 	// tx := types.NewTransaction(txReq.Nonce, txReq.ToAddress, txReq.Amount, txReq.GasLimit, txReq.GasPrice, nil)
 	// Set the directory for the keystore.
-	keystoreDir := "./wallets"
+	// keystoreDir := ""
 
-	filePath := "/UTC--2024-03-22T11-22-29.712456800Z--6713fe6cb976e6787ac0dbd2c26efcbb2e41d6e0"
-	
-	publicAddress, err := wallet.ImportKeystore(filePath, keystoreDir, txReq.Password)
+	filePath := "./wallets/UTC--2024-03-22T11-22-29.712456800Z--6713fe6cb976e6787ac0dbd2c26efcbb2e41d6e0"
+	isValid, err := validator.CheckIsValidAddress(ctx, client, txReq.FromAddress.String())
+	if !isValid {
+		return common.Hash{}, fmt.Errorf("sender address %v is not valid: err %v", txReq.FromAddress, err)
+	}
+	isValid, err = validator.CheckIsValidAddress(ctx, client, txReq.ToAddress.String())
+	if !isValid {
+		return common.Hash{}, fmt.Errorf("recipient address %v is not valid: err %v", txReq.ToAddress, err)
+	}
+	balance, err := wallet.GetEthWalletBalance(ctx, client, txReq.FromAddress)
 	if err != nil{
+		return common.Hash{}, fmt.Errorf("error getting wallet balance")
+	}
+	fmt.Println(balance)
+
+	intAmount := big.NewInt(1234567890)
+
+	floatAmount := new(big.Float).SetInt(intAmount)
+	isValidBalance := validator.CanTransferAmount(floatAmount, balance)
+	if !isValidBalance {
+		return common.Hash{}, fmt.Errorf("insufficient wallet balance")
+	}
+
+	privateKey, err := wallet.GetPrivateKeyFromKeystore(filePath, txReq.Password, txReq.FromAddress)
+	if err != nil{
+		fmt.Println(err)
 		return common.Hash{}, err
 	}
 
-	txReq.FromAddress = publicAddress
-	fmt.Println(publicAddress)
-	privateKey, err := crypto.HexToECDSA(publicAddress.Hex())
-    if err != nil {
-        log.Fatal(err)
-    }
+	// txReq.FromAddress = publicAddress
+	// fmt.Println(publicAddress)
+	// privateKey, err := crypto.HexToECDSA(publicAddress.Hex())
+    // if err != nil {
+    //     log.Fatal(err)
+    // }
 
     // publicKey := privateKey.Public()
     // publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
@@ -59,9 +81,10 @@ func (t *TransactionService) TransferCoin(ctx context.Context, client *ethclient
 
 	txReq.SetTransferCoinReqPayload(ctx, client)
 
-	toAddress := common.HexToAddress(publicAddress.Hex())
-    var data []byte
-    tx := types.NewTransaction(txReq.Nonce, toAddress, txReq.Amount, txReq.GasLimit, txReq.GasPrice, data)
+	// toAddress := common.HexToAddress(publicAddress.Hex())
+    var data []byte// Convert big.Float to big.Int
+	
+    tx := types.NewTransaction(txReq.Nonce, txReq.ToAddress, txReq.Amount, txReq.GasLimit, txReq.GasPrice, data)
 
     chainID, err := client.NetworkID(context.Background())
     if err != nil {
@@ -111,11 +134,6 @@ func (t *TransactionService) GetBlockInfo(ctx context.Context, client *ethclient
 	fmt.Println(count)
 
 	return block, nil
-}
-
-// SellCoin implements TransactionServiceInterface.
-func (t *TransactionService) SellCoin(ctx context.Context, id uint64) error {
-	panic("unimplemented")
 }
 
 func NewTransactionService(db *sqlx.DB) TransactionServiceInterface {

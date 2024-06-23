@@ -94,7 +94,7 @@ func (r *userRepository) CreateUser(ctx context.Context, user *User) (uuid.UUID,
 }
 
 func (r *userRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*User, error) {
-	query := `SELECT id, firstname, lastname, address.state, address.type, address.zip_code, address.street, verified, address.city, address.country, profile.username, email, password, profile.dob, profile.phone, created_at, updated_at FROM users WHERE id = $1`
+	query := `SELECT id, firstname, lastname, middlename, state, address_type, zip_code, street, verified, city, country, username, email, password, dob, phone, created_at, updated_at FROM users WHERE id = $1`
 	var user User
 	err := r.db.GetContext(ctx, &user, query, id)
 	if err != nil {
@@ -104,7 +104,7 @@ func (r *userRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*User, 
 }
 
 func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*User, error) {
-	query := `SELECT id, firstname, lastname, address.state, address.type, address.zip_code, address.street, verified, address.city, address.country, profile.username, email, password, profile.dob, profile.phone, created_at, updated_at FROM users WHERE id = $1`
+	query := `SELECT id, firstname, lastname, middlename, state, address_type, zip_code, street, verified, city, country, username, email, password, dob, phone, created_at, updated_at FROM users WHERE id = $1`
 	var user User
 	err := r.db.GetContext(ctx, &user, query, email)
 	if err != nil {
@@ -114,7 +114,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*Use
 }
 
 func (r *userRepository) UpdateUser(ctx context.Context, user *User) error {
-	query := `UPDATE users SET address.state=$1, address.type=$2, address.zip_code=$3, address.street=$4, verified=$5, address.city=$6, profile.username=$7, profile.dob=$8, profile.phone=$9, user.address.country=$10, updated_at=$11 WHERE id=$5`
+	query := `UPDATE users SET state=$1, type=$2, zip_code=$3, street=$4, verified=$5, address.city=$6, profile.username=$7, profile.dob=$8, profile.phone=$9, user.address.country=$10, updated_at=$11 WHERE id=$5`
 	_, err := r.db.ExecContext(ctx, query, user.Address.State, user.Address.Type, user.Address.ZipCode, user.Address.Street, user.Verified, user.Address.City, user.Profile.Username, user.Profile.DOB, user.Profile.Phone, user.Address.Country, time.Now(), user.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update user: %w", err)

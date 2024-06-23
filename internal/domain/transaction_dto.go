@@ -49,13 +49,14 @@ func (tx TransferCoinRequestPayload) SetTransferCoinReqPayload(ctx context.Conte
 	nonce, _ := tx.GetNonce(ctx, client, tx.FromAddress)
 
 
-	gasLimit := uint64(21000) // in units
+	gasLimit := uint64(1940684700) // in units
 
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	fmt.Println(gasPrice)
 	tx.GasLimit = gasLimit
 	tx.GasPrice = gasPrice
 	tx.Nonce    = nonce
